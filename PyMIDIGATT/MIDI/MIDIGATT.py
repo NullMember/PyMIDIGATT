@@ -10,7 +10,7 @@ class MidiCharacteristic(Characteristic):
     MIDI_CHRC_UUID = "7772E5DB-3868-4112-A1A9-F2669D106BF3"
 
     def __init__(self, bus, index, service, callback = None):
-        super().__init__(bus, index, self.MIDI_CHRC_UUID, ['read', 'write', 'notify'], service)
+        super().__init__(bus, index, self.MIDI_CHRC_UUID, ['read', 'write-without-response', 'notify'], service)
         self.notifying = False
         self.callback = callback
     
