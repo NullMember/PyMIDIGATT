@@ -50,6 +50,12 @@ class PyMIDIGATT:
             self.mainloop.quit()
             self.unregister()
             print("Advertisement ended")
+    
+    def addCallback(self, callback):
+        self.characteristic.addCallback(callback)
+    
+    def writeMIDI(self, value):
+        self.characteristic.writeMIDI(value)
 
     def register(self):
         self.gatt_manager.RegisterApplication(self.application, {}, reply_handler = self.gattManagerReplyHandler, error_handler = self.gattManagerErrorHandler)

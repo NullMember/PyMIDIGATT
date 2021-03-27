@@ -9,17 +9,16 @@ class MidiService(Service):
 class MidiCharacteristic(Characteristic):
     MIDI_CHRC_UUID = "7772E5DB-3868-4112-A1A9-F2669D106BF3"
 
-    def __init__(self, bus, index, service, readCallback = None, writeCallback = None):
+    def __init__(self, bus, index, service, callback = None):
         super().__init__(bus, index, self.MIDI_CHRC_UUID, ['read', 'write', 'notify'], service)
         self.notifying = False
-        self.readCallback = readCallback
-        self.writeCallback = writeCallback
+        self.callback = callback
     
-    def addReadCallback(self, callback):
-        self.readCallback = callback
+    def writeMIDI(self, value):
+        self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': dbus.ByteArray(value)}, [])
     
-    def addWriteCallback(self, callback):
-        self.writeCallback = callback
+    def addCallback(self, callback):
+        self.callback = callback
     
     def StartNotify(self):
         if self.notifying:
@@ -32,14 +31,11 @@ class MidiCharacteristic(Characteristic):
         self.notifying = False
     
     def ReadValue(self, options):
-        if self.readCallback == None:
-            return []
-        else:
-            return dbus.ByteArray(self.readCallback())
+        return []
     
     def WriteValue(self, value, options):
-        if self.writeCallback == None:
+        if self.callback == None:
             return
         else:
-            self.writeCallback((value, options))
+            self.callback(bytes(value))
             return
