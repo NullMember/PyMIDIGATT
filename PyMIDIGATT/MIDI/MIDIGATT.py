@@ -24,24 +24,20 @@ class MidiCharacteristic(Characteristic):
     def StartNotify(self):
         if self.notifying:
             return
-        print("Midi Notify Enable")
         self.notifying = True
     
     def StopNotify(self):
         if not self.notifying:
             return
-        print("Midi Notify Disable")
         self.notifying = False
     
     def ReadValue(self, options):
-        print("Midi Read", options)
         if self.readCallback == None:
             return []
         else:
             return dbus.ByteArray(self.readCallback())
     
     def WriteValue(self, value, options):
-        print("Midi Write", value, options)
         if self.writeCallback == None:
             return
         else:

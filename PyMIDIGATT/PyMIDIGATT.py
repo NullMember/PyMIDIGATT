@@ -58,10 +58,12 @@ class PyMIDIGATT:
     def unregister(self):
         try:
             self.gatt_manager.UnregisterApplication(self.application.get_path())
+            print("Application succesfully unregistered")
         except Exception as e:
             print(self.application.get_path(), e)
         try:
             self.le_advertising_manager.UnregisterAdvertisement(self.advertisement.get_path())
+            print("Advertisement succesfully unregistered")
         except Exception as e:
             print(self.advertisement.get_path(), e)
 
