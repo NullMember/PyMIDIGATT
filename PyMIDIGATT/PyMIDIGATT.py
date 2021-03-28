@@ -21,9 +21,10 @@ class PyMIDIGATT:
         # get bus from system
         self.bus = dbus.SystemBus()
         # get adapter and power it up
-        self.adapter = find_adapter_path_from_iface(ADAPTER_IFACE)
-        self.adapter_properties = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter), "org.freedesktop.DBus.Properties")
-        self.adapter_properties.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(1))
+        self.adapter_path = find_adapter_path_from_iface(ADAPTER_IFACE)
+        self.adapter_properties = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter_path), "org.freedesktop.DBus.Properties")
+        self.adapter_properties.Set(ADAPTER_IFACE, "Powered", dbus.Boolean(1))
+        self.adapter_properties.Set(ADAPTER_IFACE, "Alias", dbus.String(name))
         # get managers
         self.gatt_manager = self.findGattManager()
         self.le_advertising_manager = self.findLeAdvertisingManager()
@@ -75,13 +76,13 @@ class PyMIDIGATT:
 
     def findGattManager(self):
         try:
-            return dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter), GATT_MANAGER_IFACE)
+            return dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter_path), GATT_MANAGER_IFACE)
         except:
             raise Exception(GATT_MANAGER_IFACE + ' interface not found')
 
     def findLeAdvertisingManager(self):
         try:
-            return dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter), LE_ADVERTISING_MANAGER_IFACE)
+            return dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter_path), LE_ADVERTISING_MANAGER_IFACE)
         except:
             raise Exception(LE_ADVERTISING_MANAGER_IFACE, + ' interface not found')
     
