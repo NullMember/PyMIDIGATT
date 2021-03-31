@@ -137,7 +137,7 @@ class PyMIDIGATT:
                     self.midiHeaderCounter -= 1
                     self.midiStatus = values[index - self.midiHeaderCounter]
                     self.midiHeaderCounter -= 1
-                if self.midiHeaderCounter == 0:
+                if self.midiMessageLength == 0:
                     cmd = self.midiStatus & 0xF0
                     if cmd == 0x80: self.midiMessageLength = 2      # note off
                     elif cmd == 0x90: self.midiMessageLength = 2    # note on
