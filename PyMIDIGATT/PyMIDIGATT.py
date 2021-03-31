@@ -128,7 +128,7 @@ class PyMIDIGATT:
     def advertisementManagerErrorHandler(self, error):
         raise Exception(error)
     
-    def bleMidiEncoder(message):
+    def bleMidiEncoder(self, message):
         oldHeader = 0
         buffer = []
         lastStatus = 0
