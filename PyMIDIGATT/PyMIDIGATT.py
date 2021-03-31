@@ -40,6 +40,7 @@ class PyMIDIGATT:
         # initialize advertiser
         self.advertisement = MidiAdvertisement(name, self.AdvertiserPath, self.bus, 0)
         # create midi related variables
+        self.midiBuffer = []
         self.midiHeader = 0
         self.midiTimestamp = 0
         self.midiStatus = 0
@@ -55,12 +56,16 @@ class PyMIDIGATT:
             self.register()
             self.thread = threading.Thread(target = self.mainloop.run)
             self.thread.start()
+            self.midiRunning = True
+            self.midiThread = threading.Thread(target = self.midiRunner)
+            self.midiThread.start()
             print("Advertisement started")
             # add our midi decoder to characteristic
             self.characteristic.addCallback(self.bleMidiDecoder)
     
     def stop(self):
         if self.running:
+            self.midiRunning = False
             self.running = False
             self.unregister()
             print("Advertisement ended")
@@ -81,10 +86,7 @@ class PyMIDIGATT:
     def writeMIDI(self, value):
         if not isinstance(value, list):
             value = [value]
-        currentTime = int(time.time() * 1000) % (0x1 << 13)
-        header = 0x80 | ((currentTime >> 7) & 0x3F)
-        timestamp = 0x80 | (currentTime & 0x7F)
-        self.characteristic.writeMIDI([header, timestamp] + value)
+        self.midiBuffer += value
 
     def register(self):
         self.gatt_manager.RegisterApplication(self.application, {}, reply_handler = self.gattManagerReplyHandler, error_handler = self.gattManagerErrorHandler)
@@ -125,6 +127,31 @@ class PyMIDIGATT:
     
     def advertisementManagerErrorHandler(self, error):
         raise Exception(error)
+    
+    def bleMidiEncoder(message):
+        oldHeader = 0
+        buffer = []
+        lastStatus = 0
+        for val in message:
+            currentTime = int(time.time() * 1000) % (0x1 << 13)
+            header = 0x80 | ((currentTime >> 7) & 0x3F)
+            timestamp = 0x80 | (currentTime & 0x7F)
+            if val & 0x80:
+                if oldHeader != header:
+                    buffer.append(header)
+                    buffer.append(timestamp)
+                    buffer.append(val)
+                    oldHeader = header
+                    lastStatus = val
+                elif lastStatus != val:
+                    buffer.append(timestamp)
+                    buffer.append(val)
+                    lastStatus = val
+                else:
+                    buffer.append(timestamp)
+            else:
+                buffer.append(val)
+        return buffer
     
     #cursed algorithm, do not use at home
     def bleMidiDecoder(self, message):
@@ -175,3 +202,10 @@ class PyMIDIGATT:
                         elif cmd == 0xC0 or cmd == 0xD0:
                             if self.callback is not None:
                                 self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[1]]))
+    
+    def midiRunner(self):
+        while self.midiRunning:
+            if len(self.midiBuffer):
+                self.characteristic.writeMIDI(self.bleMidiEncoder(self.midiBuffer))
+                self.midiBuffer = []
+            time.sleep(0.01)
