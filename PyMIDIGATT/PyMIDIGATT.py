@@ -70,8 +70,21 @@ class PyMIDIGATT:
     def addCallback(self, callback):
         self.callback = callback
     
+    def sendNoteOff(self, channel, note, velocity): self.writeMIDI([0x80 | (channel & 0x0F), note, velocity])
+    def sendNoteOn(self, channel, note, velocity): self.writeMIDI([0x90 | (channel & 0x0F), note, velocity])
+    def sendPolyPressure(self, channel, note, pressure): self.writeMIDI([0xA0 | (channel & 0x0F), note, pressure])
+    def sendControlChange(self, channel, control, value): self.writeMIDI([0xB0 | (channel & 0x0F), control, value])
+    def sendProgramChange(self, channel, program): self.writeMIDI([0xC0 | (channel & 0x0F), program])
+    def sendAftertouch(self, channel, pressure): self.writeMIDI([0xD0 | (channel & 0x0F), pressure])
+    def sendPitchBend(self, channel, value): self.writeMIDI([0xE0 | (channel & 0x0F), value & 0x7F, (value >> 7) & 0x7F])
+    
     def writeMIDI(self, value):
-        self.characteristic.writeMIDI(value)
+        if not isinstance(value, list):
+            value = [value]
+        currentTime = int(time.time() * 1000) % (0x1 << 13)
+        header = (currentTime >> 7) & 0x3F
+        timestamp = currentTime & 0x7F
+        self.characteristic.writeMIDI([header, timestamp] + value)
 
     def register(self):
         self.gatt_manager.RegisterApplication(self.application, {}, reply_handler = self.gattManagerReplyHandler, error_handler = self.gattManagerErrorHandler)
