@@ -1,6 +1,5 @@
 #!/bin/python3
 from PyMIDIGATT import PyMIDIGATT
-import signal
 import time
 import rtmidi
 
@@ -27,7 +26,9 @@ def cb(message):
 if __name__ == "__main__":
     midiAdvertisement = PyMIDIGATT.PyMIDIGATT("Midi Test", cb)
     midiAdvertisement.run()
-    try:
-        time.sleep(0.1)
-    except:
-        midiAdvertisement.stop()
+    while True:
+        try:
+            time.sleep(0.1)
+        except:
+            midiAdvertisement.stop()
+            break
