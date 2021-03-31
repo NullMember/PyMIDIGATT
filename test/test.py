@@ -25,8 +25,7 @@ def cb(message):
         print("Pitch Bend, Channel: {}, Value: {}".format(chn, (midi[1] << 7) | midi[2]))
 
 if __name__ == "__main__":
-    midiAdvertisement = PyMIDIGATT.PyMIDIGATT("Midi Test")
-    midiAdvertisement.addCallback(cb)
+    midiAdvertisement = PyMIDIGATT.PyMIDIGATT("Midi Test", cb)
     midiAdvertisement.run()
     try:
         time.sleep(0.1)

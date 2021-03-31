@@ -113,10 +113,13 @@ class PyMIDIGATT:
     def advertisementManagerErrorHandler(self, error):
         raise Exception(error)
     
+    #cursed algorithm, do not use at home
     def bleMidiDecoder(self, message):
         values, options = message
         for index, val in enumerate(values):
             if val & 0x80:
+                if self.midiHeaderCounter < 0:
+                    self.midiHeaderCounter = 0
                 self.midiHeaderCounter += 1
             else:
                 if self.midiHeaderCounter == 1:
@@ -134,7 +137,7 @@ class PyMIDIGATT:
                     self.midiHeaderCounter -= 1
                     self.midiStatus = values[index - self.midiHeaderCounter]
                     self.midiHeaderCounter -= 1
-                else:
+                if self.midiHeaderCounter == 0:
                     cmd = self.midiStatus & 0xF0
                     if cmd == 0x80: self.midiMessageLength = 2      # note off
                     elif cmd == 0x90: self.midiMessageLength = 2    # note on
@@ -144,16 +147,18 @@ class PyMIDIGATT:
                     elif cmd == 0xD0: self.midiMessageLength = 1    # aftertouch
                     elif cmd == 0xE0: self.midiMessageLength = 2    # pitch bend
                     elif cmd == 0xF0: self.midiMessageLength = 0    # system messages, variable length
-                cmd = self.midiStatus & 0xF0
-                # we currently not support system messages, otherwise this is really bad idea
-                if self.midiMessageLength > 0:
-                    self.midiMessageBuffer[2 - self.midiMessageLength] = val
-                    self.midiMessageLength -= 1
-                else:
-                    timestamp = ((self.midiHeader & 0x3F) << 7) | (self.midiTimestamp & 0x7F)
-                    if cmd == 0x80 or cmd == 0x90 or cmd == 0xA0 or cmd == 0xB0 or cmd == 0xE0:
-                        if self.callback is not None:
-                            self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[0], self.midiMessageBuffer[1]]))
-                    elif cmd == 0xC0 or cmd == 0xD0:
-                        if self.callback is not None:
-                            self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[0]]))
+                    self.midiHeaderCounter -= 1
+                if self.midiHeaderCounter < 0:
+                    cmd = self.midiStatus & 0xF0
+                    # we currently not support system messages, otherwise this is really bad idea
+                    if self.midiMessageLength > 0:
+                        self.midiMessageBuffer[2 - self.midiMessageLength] = val
+                        self.midiMessageLength -= 1
+                    if self.midiMessageLength == 0:
+                        timestamp = ((self.midiHeader & 0x3F) << 7) | (self.midiTimestamp & 0x7F)
+                        if cmd == 0x80 or cmd == 0x90 or cmd == 0xA0 or cmd == 0xB0 or cmd == 0xE0:
+                            if self.callback is not None:
+                                self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[0], self.midiMessageBuffer[1]]))
+                        elif cmd == 0xC0 or cmd == 0xD0:
+                            if self.callback is not None:
+                                self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[1]]))
