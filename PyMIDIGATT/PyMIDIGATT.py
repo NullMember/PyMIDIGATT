@@ -148,6 +148,7 @@ class PyMIDIGATT:
                 # we currently not support system messages, otherwise this is really bad idea
                 if self.midiMessageLength > 0:
                     self.midiMessageBuffer[2 - self.midiMessageLength] = val
+                    self.midiMessageLength -= 1
                 else:
                     timestamp = ((self.midiHeader & 0x3F) << 7) | (self.midiTimestamp & 0x7F)
                     if cmd == 0x80 or cmd == 0x90 or cmd == 0xA0 or cmd == 0xB0 or cmd == 0xE0:
