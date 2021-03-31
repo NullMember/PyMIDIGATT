@@ -82,8 +82,8 @@ class PyMIDIGATT:
         if not isinstance(value, list):
             value = [value]
         currentTime = int(time.time() * 1000) % (0x1 << 13)
-        header = (currentTime >> 7) & 0x3F
-        timestamp = currentTime & 0x7F
+        header = 0x80 | ((currentTime >> 7) & 0x3F)
+        timestamp = 0x80 | (currentTime & 0x7F)
         self.characteristic.writeMIDI([header, timestamp] + value)
 
     def register(self):
