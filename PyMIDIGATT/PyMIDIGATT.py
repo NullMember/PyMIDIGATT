@@ -48,8 +48,6 @@ class PyMIDIGATT:
         self.midiMessageBuffer = [0] * 2
         # callback for bleMidiDecoder
         self.callback = callback
-        # add our midi decoder to characteristic
-        self.characteristic.addCallback(self.bleMidiDecoder)
 
     def run(self):
         if not self.running:
@@ -58,6 +56,8 @@ class PyMIDIGATT:
             self.thread = threading.Thread(target = self.mainloop.run)
             self.thread.start()
             print("Advertisement started")
+            # add our midi decoder to characteristic
+            self.characteristic.addCallback(self.bleMidiDecoder)
     
     def stop(self):
         if self.running:
@@ -65,6 +65,7 @@ class PyMIDIGATT:
             self.unregister()
             print("Advertisement ended")
             self.mainloop.quit()
+            self.characteristic.addCallback(None)
     
     def addCallback(self, callback):
         self.callback = callback
