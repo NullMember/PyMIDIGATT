@@ -131,7 +131,7 @@ class PyMIDIGATT:
     def bleMidiEncoder(self, message):
         oldHeader = 0
         buffer = []
-        lastStatus = 0
+        # lastStatus = 0
         for val in message:
             currentTime = int(time.time() * 1000) % (0x1 << 13)
             header = 0x80 | ((currentTime >> 7) & 0x3F)
@@ -142,13 +142,14 @@ class PyMIDIGATT:
                     buffer.append(timestamp)
                     buffer.append(val)
                     oldHeader = header
-                    lastStatus = val
-                elif lastStatus != val:
-                    buffer.append(timestamp)
-                    buffer.append(val)
-                    lastStatus = val
+                #     lastStatus = val
+                # elif lastStatus != val:
                 else:
                     buffer.append(timestamp)
+                    buffer.append(val)
+                #     lastStatus = val
+                # else:
+                #     buffer.append(timestamp)
             else:
                 buffer.append(val)
         return buffer
