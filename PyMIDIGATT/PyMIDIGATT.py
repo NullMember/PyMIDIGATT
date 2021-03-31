@@ -16,7 +16,7 @@ class PyMIDIGATT:
     AdvertiserPath = '/org/test/ble/midi/advertisement'
     ServicePath = '/org/test/ble/midi/service'
 
-    def __init__(self, name):
+    def __init__(self, name, callback = None):
         self.running = False
         self.mainloop = GLib.MainLoop()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -39,13 +39,17 @@ class PyMIDIGATT:
         self.service.add_characteristic(self.characteristic)
         # initialize advertiser
         self.advertisement = MidiAdvertisement(name, self.AdvertiserPath, self.bus, 0)
-        self.inputBuffer = RingBuffer(256)
-        self.outputBuffer = RingBuffer(256)
-        self.sysexBuffer = RingBuffer(256)
+        # create midi related variables
         self.midiHeader = 0
         self.midiTimestamp = 0
         self.midiStatus = 0
         self.midiHeaderCounter = 0
+        self.midiMessageLength = 0
+        self.midiMessageBuffer = [0] * 2
+        # callback for bleMidiDecoder
+        self.callback = callback
+        # add our midi decoder to characteristic
+        self.characteristic.addCallback(self.bleMidiDecoder)
 
     def run(self):
         if not self.running:
@@ -63,7 +67,7 @@ class PyMIDIGATT:
             self.mainloop.quit()
     
     def addCallback(self, callback):
-        self.characteristic.addCallback(callback)
+        self.callback = callback
     
     def writeMIDI(self, value):
         self.characteristic.writeMIDI(value)
@@ -108,8 +112,8 @@ class PyMIDIGATT:
     def advertisementManagerErrorHandler(self, error):
         raise Exception(error)
     
-    def decodeMidi(self, values):
-        self.inputBuffer.write(values)
+    def bleMidiDecoder(self, message):
+        values, options = message
         for index, val in enumerate(values):
             if val & 0x80:
                 self.midiHeaderCounter += 1
@@ -130,4 +134,24 @@ class PyMIDIGATT:
                     self.midiStatus = values[index - self.midiHeaderCounter]
                     self.midiHeaderCounter -= 1
                 else:
-                    pass
+                    cmd = self.midiStatus & 0xF0
+                    if cmd == 0x80: self.midiMessageLength = 2      # note off
+                    elif cmd == 0x90: self.midiMessageLength = 2    # note on
+                    elif cmd == 0xA0: self.midiMessageLength = 2    # poly pressure
+                    elif cmd == 0xB0: self.midiMessageLength = 2    # control change
+                    elif cmd == 0xC0: self.midiMessageLength = 1    # program change
+                    elif cmd == 0xD0: self.midiMessageLength = 1    # aftertouch
+                    elif cmd == 0xE0: self.midiMessageLength = 2    # pitch bend
+                    elif cmd == 0xF0: self.midiMessageLength = 0    # system messages, variable length
+                cmd = self.midiStatus & 0xF0
+                # we currently not support system messages, otherwise this is really bad idea
+                if self.midiMessageLength > 0:
+                    self.midiMessageBuffer[2 - self.midiMessageLength] = val
+                else:
+                    timestamp = ((self.midiHeader & 0x3F) << 7) | (self.midiTimestamp & 0x7F)
+                    if cmd == 0x80 or cmd == 0x90 or cmd == 0xA0 or cmd == 0xB0 or cmd == 0xE0:
+                        if self.callback is not None:
+                            self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[0], self.midiMessageBuffer[1]]))
+                    elif cmd == 0xC0 or cmd == 0xD0:
+                        if self.callback is not None:
+                            self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[0]]))
