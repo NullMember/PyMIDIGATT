@@ -41,6 +41,7 @@ class PyMIDIGATT:
         self.advertisement = MidiAdvertisement(name, self.AdvertiserPath, self.bus, 0)
         # create midi related variables
         self.midiBuffer = []
+        self.midiBufferLock = False
         self.midiHeader = 0
         self.midiTimestamp = 0
         self.midiStatus = 0
@@ -86,7 +87,11 @@ class PyMIDIGATT:
     def writeMIDI(self, value):
         if not isinstance(value, list):
             value = [value]
+        while self.midiBufferLock:
+            pass
+        self.midiBufferLock = True
         self.midiBuffer += value
+        self.midiBufferLock = False
 
     def register(self):
         self.gatt_manager.RegisterApplication(self.application, {}, reply_handler = self.gattManagerReplyHandler, error_handler = self.gattManagerErrorHandler)
@@ -207,6 +212,10 @@ class PyMIDIGATT:
     def midiRunner(self):
         while self.midiRunning:
             if len(self.midiBuffer):
+                while self.midiBufferLock:
+                    pass
+                self.midiBufferLock = True
                 self.characteristic.writeMIDI(self.bleMidiEncoder(self.midiBuffer))
                 self.midiBuffer = []
+                self.midiBufferLock = False
             time.sleep(0.01)
