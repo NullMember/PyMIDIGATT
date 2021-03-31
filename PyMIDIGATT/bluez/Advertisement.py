@@ -1,7 +1,7 @@
 import dbus
 import dbus.service
-from .consts import *
-from .exceptions import *
+from PyMIDIGATT.bluez.consts import *
+from PyMIDIGATT.bluez.exceptions import *
 
 class Advertisement(dbus.service.Object):
 

@@ -4,17 +4,19 @@ import dbus.mainloop.glib
 from gi.repository import GLib
 
 import threading
+import time
 
-from .MIDI.MIDIAdvertisement import *
-from .MIDI.MIDIGATT import *
-from .bluez.bluezutils import *
-from .bluez.consts import *
+from PyMIDIGATT.MIDI.MIDIAdvertisement import *
+from PyMIDIGATT.MIDI.MIDIGATT import *
+from PyMIDIGATT.bluez.bluezutils import *
+from PyMIDIGATT.bluez.consts import *
+from PyMIDIGATT.util.RingBuffer import *
 
 class PyMIDIGATT:
     AdvertiserPath = '/org/test/ble/midi/advertisement'
     ServicePath = '/org/test/ble/midi/service'
 
-    def __init__(self, name) -> None:
+    def __init__(self, name):
         self.running = False
         self.mainloop = GLib.MainLoop()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -24,6 +26,7 @@ class PyMIDIGATT:
         self.adapter_path = find_adapter_path_from_iface(ADAPTER_IFACE)
         self.adapter_properties = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter_path), "org.freedesktop.DBus.Properties")
         self.adapter_properties.Set(ADAPTER_IFACE, "Powered", dbus.Boolean(1))
+        self.adapter_properties.Set(ADAPTER_IFACE, "Discoverable", dbus.Boolean(1))
         self.adapter_properties.Set(ADAPTER_IFACE, "Alias", dbus.String(name))
         # get managers
         self.gatt_manager = self.findGattManager()
@@ -36,6 +39,13 @@ class PyMIDIGATT:
         self.service.add_characteristic(self.characteristic)
         # initialize advertiser
         self.advertisement = MidiAdvertisement(name, self.AdvertiserPath, self.bus, 0)
+        self.inputBuffer = RingBuffer(256)
+        self.outputBuffer = RingBuffer(256)
+        self.sysexBuffer = RingBuffer(256)
+        self.midiHeader = 0
+        self.midiTimestamp = 0
+        self.midiStatus = 0
+        self.midiHeaderCounter = 0
 
     def run(self):
         if not self.running:
@@ -48,9 +58,9 @@ class PyMIDIGATT:
     def stop(self):
         if self.running:
             self.running = False
-            self.mainloop.quit()
             self.unregister()
             print("Advertisement ended")
+            self.mainloop.quit()
     
     def addCallback(self, callback):
         self.characteristic.addCallback(callback)
@@ -97,3 +107,27 @@ class PyMIDIGATT:
     
     def advertisementManagerErrorHandler(self, error):
         raise Exception(error)
+    
+    def decodeMidi(self, values):
+        self.inputBuffer.write(values)
+        for index, val in enumerate(values):
+            if val & 0x80:
+                self.midiHeaderCounter += 1
+            else:
+                if self.midiHeaderCounter == 1:
+                    self.midiTimestamp = values[index - self.midiHeaderCounter]
+                    self.midiHeaderCounter -= 1
+                elif self.midiHeaderCounter == 2:
+                    self.midiTimestamp = values[index - self.midiHeaderCounter]
+                    self.midiHeaderCounter -= 1
+                    self.midiStatus = values[index - self.midiHeaderCounter]
+                    self.midiHeaderCounter -= 1
+                elif self.midiHeaderCounter == 3:
+                    self.midiHeader = values[index - self.midiHeaderCounter]
+                    self.midiHeaderCounter -= 1
+                    self.midiTimestamp = values[index - self.midiHeaderCounter]
+                    self.midiHeaderCounter -= 1
+                    self.midiStatus = values[index - self.midiHeaderCounter]
+                    self.midiHeaderCounter -= 1
+                else:
+                    pass

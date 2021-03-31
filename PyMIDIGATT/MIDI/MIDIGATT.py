@@ -1,4 +1,4 @@
-from ..bluez.GATT import *
+from PyMIDIGATT.bluez.GATT import *
 
 class MidiService(Service):
     MIDI_UUID = "03B80E5A-EDE8-4B33-A751-6CE34EC4C700"
@@ -37,5 +37,5 @@ class MidiCharacteristic(Characteristic):
         if self.callback == None:
             return
         else:
-            self.callback(bytes(value))
+            self.callback((bytes(value), options))
             return

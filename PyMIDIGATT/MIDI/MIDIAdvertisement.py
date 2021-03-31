@@ -1,4 +1,4 @@
-from ..bluez.Advertisement import *
+from PyMIDIGATT.bluez.Advertisement import *
 
 class MidiAdvertisement(Advertisement):
     def __init__(self, name, path, bus, index):

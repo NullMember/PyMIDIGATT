@@ -1,5 +1,5 @@
 import dbus
-from .consts import *
+from PyMIDIGATT.bluez.consts import *
 
 def get_managed_objects():
 	bus = dbus.SystemBus()
