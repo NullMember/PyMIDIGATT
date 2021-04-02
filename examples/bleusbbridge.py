@@ -34,7 +34,7 @@ if __name__ == "__main__":
     elif not args.output or not args.input:
         print("Midi Input and Midi Output name required.")
     else:
-        midiAdvertisement = PyMIDIGATT.PyMIDIGATT(args.name, blmidicb)
+        midiAdvertisement = PyMIDIGATT(args.name, blmidicb)
         midiin = rtmidi.midiutil.open_midiinput(args.input)[0]
         midiout = rtmidi.midiutil.open_midioutput(args.output)[0]
         midiin.set_callback(rtmidicb)

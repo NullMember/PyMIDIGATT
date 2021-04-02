@@ -11,7 +11,7 @@ setup(
     version=PyMIDIGATT.version,
     author='Malik Enes Safak',
     author_email='e.maliksafak@gmail.com',
-    packages=['PyMIDIGATT', 'PyMIDIGATT.MIDI', 'PyMIDIGATT.bluez', 'PyMIDIGATT.util'],
+    packages=['PyMIDIGATT', 'PyMIDIGATT.MIDI', 'PyMIDIGATT.bluez'],
     url='https://github.com/NullMember/PyMIDIGATT',
     license='MIT',
     install_requires=[
