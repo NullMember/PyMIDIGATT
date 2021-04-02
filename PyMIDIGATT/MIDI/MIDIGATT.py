@@ -37,5 +37,5 @@ class MidiCharacteristic(Characteristic):
         if self.callback == None:
             return
         else:
-            self.callback(value)
+            self.callback(bytes(value))
             return
