@@ -14,7 +14,9 @@ setup(
     packages=['PyMIDIGATT', 'PyMIDIGATT.MIDI', 'PyMIDIGATT.bluez', 'PyMIDIGATT.util'],
     url='https://github.com/NullMember/PyMIDIGATT',
     license='MIT',
-    install_requires=[],
+    install_requires=[
+        "BLEMidiTranslator"
+    ],
     description='MIDI BLE GATT server for linux computers including single board computers',
     keywords = 'midi ble gatt server linux bluez dbus sbe raspberry pi'
 )

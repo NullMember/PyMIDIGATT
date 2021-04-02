@@ -10,9 +10,10 @@ midiin = None
 midiout = None
 
 def blmidicb(message):
-    timestamp, midi = message
-    print("blmidi", midi)
-    midiout.send_message(midi)
+    for midi in message:
+        timestamp, value = midi
+        print("blmidi", value)
+        midiout.send_message(value)
 
 def rtmidicb(message, _):
     midi, delta = message

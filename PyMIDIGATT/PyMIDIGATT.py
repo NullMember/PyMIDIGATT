@@ -10,7 +10,7 @@ from PyMIDIGATT.MIDI.MIDIAdvertisement import *
 from PyMIDIGATT.MIDI.MIDIGATT import *
 from PyMIDIGATT.bluez.bluezutils import *
 from PyMIDIGATT.bluez.consts import *
-from PyMIDIGATT.util.RingBuffer import *
+import BLEMidiTranslator
 
 class PyMIDIGATT:
     AdvertiserPath = '/org/test/ble/midi/advertisement'
@@ -40,14 +40,8 @@ class PyMIDIGATT:
         # initialize advertiser
         self.advertisement = MidiAdvertisement(name, self.AdvertiserPath, self.bus, 0)
         # create midi related variables
-        self.midiBuffer = []
-        self.midiBufferLock = False
-        self.midiHeader = 0
-        self.midiTimestamp = 0
-        self.midiStatus = 0
-        self.midiHeaderCounter = 0
-        self.midiMessageLength = 0
-        self.midiMessageBuffer = [0] * 2
+        self.midiEncoder = BLEMidiTranslator.Encoder()
+        self.midiDecoder = BLEMidiTranslator.Decoder()
         # callback for bleMidiDecoder
         self.callback = callback
 
@@ -62,7 +56,7 @@ class PyMIDIGATT:
             self.midiThread.start()
             print("Advertisement started")
             # add our midi decoder to characteristic
-            self.characteristic.addCallback(self.bleMidiDecoder)
+            self.characteristic.addCallback(self.midiCallback)
     
     def stop(self):
         if self.running:
@@ -85,13 +79,7 @@ class PyMIDIGATT:
     def sendPitchBend(self, channel, value): self.writeMIDI([0xE0 | (channel & 0x0F), value & 0x7F, (value >> 7) & 0x7F])
     
     def writeMIDI(self, value):
-        if not isinstance(value, list):
-            value = [value]
-        while self.midiBufferLock:
-            pass
-        self.midiBufferLock = True
-        self.midiBuffer += value
-        self.midiBufferLock = False
+        self.midiEncoder.writeToBuffer(value)
 
     def register(self):
         self.gatt_manager.RegisterApplication(self.application, {}, reply_handler = self.gattManagerReplyHandler, error_handler = self.gattManagerErrorHandler)
@@ -133,89 +121,12 @@ class PyMIDIGATT:
     def advertisementManagerErrorHandler(self, error):
         raise Exception(error)
     
-    def bleMidiEncoder(self, message):
-        oldHeader = 0
-        buffer = []
-        # lastStatus = 0
-        for val in message:
-            currentTime = int(time.time() * 1000) % (0x1 << 13)
-            header = 0x80 | ((currentTime >> 7) & 0x3F)
-            timestamp = 0x80 | (currentTime & 0x7F)
-            if val & 0x80:
-                if oldHeader != header:
-                    buffer.append(header)
-                    buffer.append(timestamp)
-                    buffer.append(val)
-                    oldHeader = header
-                #     lastStatus = val
-                # elif lastStatus != val:
-                else:
-                    buffer.append(timestamp)
-                    buffer.append(val)
-                #     lastStatus = val
-                # else:
-                #     buffer.append(timestamp)
-            else:
-                buffer.append(val)
-        return buffer
-    
-    #cursed algorithm, do not use at home
-    def bleMidiDecoder(self, message):
-        values, options = message
-        for index, val in enumerate(values):
-            if val & 0x80:
-                if self.midiHeaderCounter < 0:
-                    self.midiHeaderCounter = 0
-                self.midiHeaderCounter += 1
-            else:
-                if self.midiHeaderCounter == 1:
-                    self.midiTimestamp = values[index - self.midiHeaderCounter]
-                    self.midiHeaderCounter -= 1
-                elif self.midiHeaderCounter == 2:
-                    self.midiTimestamp = values[index - self.midiHeaderCounter]
-                    self.midiHeaderCounter -= 1
-                    self.midiStatus = values[index - self.midiHeaderCounter]
-                    self.midiHeaderCounter -= 1
-                elif self.midiHeaderCounter == 3:
-                    self.midiHeader = values[index - self.midiHeaderCounter]
-                    self.midiHeaderCounter -= 1
-                    self.midiTimestamp = values[index - self.midiHeaderCounter]
-                    self.midiHeaderCounter -= 1
-                    self.midiStatus = values[index - self.midiHeaderCounter]
-                    self.midiHeaderCounter -= 1
-                if self.midiMessageLength == 0:
-                    cmd = self.midiStatus & 0xF0
-                    if cmd == 0x80: self.midiMessageLength = 2      # note off
-                    elif cmd == 0x90: self.midiMessageLength = 2    # note on
-                    elif cmd == 0xA0: self.midiMessageLength = 2    # poly pressure
-                    elif cmd == 0xB0: self.midiMessageLength = 2    # control change
-                    elif cmd == 0xC0: self.midiMessageLength = 1    # program change
-                    elif cmd == 0xD0: self.midiMessageLength = 1    # aftertouch
-                    elif cmd == 0xE0: self.midiMessageLength = 2    # pitch bend
-                    elif cmd == 0xF0: self.midiMessageLength = 0    # system messages, variable length
-                    self.midiHeaderCounter -= 1
-                if self.midiHeaderCounter < 0:
-                    cmd = self.midiStatus & 0xF0
-                    # we currently not support system messages, otherwise this is really bad idea
-                    if self.midiMessageLength > 0:
-                        self.midiMessageBuffer[2 - self.midiMessageLength] = val
-                        self.midiMessageLength -= 1
-                    if self.midiMessageLength == 0:
-                        timestamp = ((self.midiHeader & 0x3F) << 7) | (self.midiTimestamp & 0x7F)
-                        if cmd == 0x80 or cmd == 0x90 or cmd == 0xA0 or cmd == 0xB0 or cmd == 0xE0:
-                            if self.callback is not None:
-                                self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[0], self.midiMessageBuffer[1]]))
-                        elif cmd == 0xC0 or cmd == 0xD0:
-                            if self.callback is not None:
-                                self.callback((timestamp, [self.midiStatus, self.midiMessageBuffer[1]]))
+    def midiCallback(self, value):
+        if self.callback is not None:
+            self.callback(self.midiDecoder.decode(value))
     
     def midiRunner(self):
         while self.midiRunning:
-            if len(self.midiBuffer):
-                while self.midiBufferLock:
-                    pass
-                self.midiBufferLock = True
-                self.characteristic.writeMIDI(self.bleMidiEncoder(self.midiBuffer))
-                self.midiBuffer = []
-                self.midiBufferLock = False
+            if self.midiEncoder.buffer.readable:
+                self.characteristic.writeMIDI(self.midiEncoder.encodeBuffer())
             time.sleep(0.01)
