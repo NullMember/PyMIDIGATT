@@ -21,7 +21,7 @@ sudo cp PyMIDIGATT/configuration/main.conf /etc/bluetooth/main.conf
 # copy bleusbbridge service to make it run on restart
 sudo cp PyMIDIGATT/examples/bleusbbridge/bleusbbridge.service /etc/systemd/system/bleusbbridge.service
 # copy bleusbbridge directory to root home
-sudo cp -r PyMIDIGATT/examples/bleusbbridge /root/bleusbbridge
+sudo cp -r PyMIDIGATT/examples/bleusbbridge /root
 # install PyMIDIGATT package
 sudo pip3 install --no-index PyMIDIGATT/.
 # remove PyMIDIGATT directory
