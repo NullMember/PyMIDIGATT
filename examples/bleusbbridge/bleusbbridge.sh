@@ -29,6 +29,6 @@ sudo rm -r PyMIDIGATT
 # reload services
 sudo systemctl daemon-reload
 # enable bleusbbridge service
-sudo systemctl enable bleusbbridge.services
+sudo systemctl enable bleusbbridge.service
 # reboot system
 sudo reboot
