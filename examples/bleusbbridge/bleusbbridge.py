@@ -61,8 +61,9 @@ def checkMidiPorts(inputPorts, outputPorts):
             break
     for port in outputPorts:
         for p in outPorts:
-            if port in outPorts:
+            if port in p:
                 outPort = port
+                break
         if outPort:
             break
     return inPort, outPort
