@@ -55,8 +55,8 @@ You can also send midi message from your peripheral to device connected it using
 
 writeMIDI function use some sort of ring buffer internally. It will write incoming MIDI messages to buffer and send them together in 10ms period. 
 This will cause latency but encoding more midi messages together will reduce outgoing bytes in total. 
-I don't know what is the best since i'm not much sensitive about latency. But feedbacks are always welcomed. 
-Update: You can eliminate buffer with initializer option or can change buffer period.
+I don't know what is the best since i'm not much sensitive about latency. But feedbacks are always welcomed.  
+**Update**: You can eliminate buffer with initializer option or can change buffer period.
 
 ## Latency
 
