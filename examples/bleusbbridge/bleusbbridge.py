@@ -6,7 +6,6 @@ import rtmidi.midiutil
 import os
 from argparse import ArgumentParser
 
-DEFAULT_WHITELIST = "whitelist.txt"
 midiAdvertisement = None
 midiin = rtmidi.MidiIn()
 midiout = rtmidi.MidiOut()
@@ -76,13 +75,13 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input", help="Name of Midi Input device")
     parser.add_argument("-o", "--output", help="Name of Midi Output device")
     parser.add_argument("-l", "--list", help="List available Midi input and output devices", action="store_true")
-    parser.add_argument("-w", "--whitelist", help="Specify custom whitelist file")
+    parser.add_argument("-w", "--whitelist", help="Specify custom whitelist file", default="whitelist.txt")
     parser.add_argument("-n", "--name", help="Name of BLE Midi Peripheral", default="BLE-MIDI Device")
     args = parser.parse_args()
     deviceFound = False
     inputNames = []
     outputNames = []
-    whitelistPath = ""
+    whitelistPath = parser.whitelist
 
     if args.list:
         rtmidi.midiutil.list_input_ports()
