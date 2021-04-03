@@ -53,12 +53,18 @@ def checkMidiPorts(inputPorts, outputPorts):
     inPort = None
     outPort = None
     for port in inputPorts:
-        if port in inPorts:
-            inPort = port
+        for p in inPorts:
+            if port in p:
+                inPort = port
+                break
+        if inPort:
             break
     for port in outputPorts:
-        if port in outPorts:
-            outPort = port
+        for p in outPorts:
+            if port in outPorts:
+                outPort = port
+        if outPort:
+            break
     return inPort, outPort
 
 def midiError(type, messsage, data):
@@ -128,8 +134,8 @@ if __name__ == "__main__":
             try:
                 inName, outName = checkMidiPorts(inputNames, outputNames)
                 if inName and outName:
-                    midiin = rtmidi.midiutil.open_midiinput(inName, interactive=False)
-                    midiout = rtmidi.midiutil.open_midioutput(outName, interactive=False)
+                    midiin = rtmidi.midiutil.open_midiinput(inName, interactive=False)[0]
+                    midiout = rtmidi.midiutil.open_midioutput(outName, interactive=False)[0]
                     midiin.set_error_callback(midiError)
                     midiout.set_error_callback(midiError)
                     connected = True
