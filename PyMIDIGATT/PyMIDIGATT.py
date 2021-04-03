@@ -16,7 +16,7 @@ class PyMIDIGATT:
     AdvertiserPath = '/org/test/ble/midi/advertisement'
     ServicePath = '/org/test/ble/midi/service'
 
-    def __init__(self, name, callback = None):
+    def __init__(self, name: str, callback = None, useBuffer: bool = True, writePeriod: int = 0.01):
         self.running = False
         self.mainloop = GLib.MainLoop()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -44,6 +44,8 @@ class PyMIDIGATT:
         self.midiDecoder = BLEMidiTranslator.Decoder()
         # callback for bleMidiDecoder
         self.callback = callback
+        self.writePeriod = writePeriod
+        self.useBuffer = useBuffer
 
     def run(self):
         if not self.running:
@@ -51,16 +53,18 @@ class PyMIDIGATT:
             self.register()
             self.thread = threading.Thread(target = self.mainloop.run)
             self.thread.start()
-            self.midiRunning = True
-            self.midiThread = threading.Thread(target = self.midiRunner)
-            self.midiThread.start()
+            if self.useBuffer:
+                self.midiRunning = True
+                self.midiThread = threading.Thread(target = self.midiRunner)
+                self.midiThread.start()
             print("Advertisement started")
             # add our midi decoder to characteristic
             self.characteristic.addCallback(self.midiCallback)
     
     def stop(self):
         if self.running:
-            self.midiRunning = False
+            if self.useBuffer:
+                self.midiRunning = False
             self.running = False
             self.unregister()
             print("Advertisement ended")
@@ -79,7 +83,10 @@ class PyMIDIGATT:
     def sendPitchBend(self, channel, value): self.writeMIDI([0xE0 | (channel & 0x0F), value & 0x7F, (value >> 7) & 0x7F])
     
     def writeMIDI(self, value):
-        self.midiEncoder.writeToBuffer(value)
+        if self.useBuffer:
+            self.midiEncoder.writeToBuffer(value)
+        else:
+            self.characteristic.writeMIDI(self.midiEncoder.encode(value))
 
     def register(self):
         self.gatt_manager.RegisterApplication(self.application, {}, reply_handler = self.gattManagerReplyHandler, error_handler = self.gattManagerErrorHandler)
@@ -129,4 +136,4 @@ class PyMIDIGATT:
         while self.midiRunning:
             if self.midiEncoder.buffer.readable:
                 self.characteristic.writeMIDI(self.midiEncoder.encodeBuffer())
-            time.sleep(0.01)
+            time.sleep(self.writePeriod)
