@@ -1,0 +1,10 @@
+[Unit]
+Description=BLE Midi Server
+After=bluetooth.service
+
+[Service]
+User=root
+ExecStart=/root/bleusbbridge/bleusbbridge
+
+[Install]
+WantedBy=multi-user.target

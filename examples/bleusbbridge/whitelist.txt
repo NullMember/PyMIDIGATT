@@ -1,0 +1,12 @@
+#This file adds USB Midi devices to whitelist
+#to be used with bleusbbridge script
+#Names can be partial or full device name
+#User can list available port names using --list option
+#If two devices in whitelist currently connected to device
+#first one in this list will be used
+#To use different whitelist file check bleusbbridge script
+#with --help option
+;Input
+MK3 MIDI 2
+;Output
+MK3 MIDI 2
