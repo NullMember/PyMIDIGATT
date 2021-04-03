@@ -16,7 +16,7 @@ class PyMIDIGATT:
     AdvertiserPath = '/org/test/ble/midi/advertisement'
     ServicePath = '/org/test/ble/midi/service'
 
-    def __init__(self, name: str, callback = None, useBuffer: bool = True, writePeriod: int = 0.01):
+    def __init__(self, name: str, callback = None, useBuffer: bool = True, writePeriod: float = 0.01):
         self.running = False
         self.mainloop = GLib.MainLoop()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
