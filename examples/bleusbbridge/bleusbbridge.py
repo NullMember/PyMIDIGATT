@@ -15,12 +15,10 @@ connected = False
 def blmidicb(message):
     for midi in message:
         timestamp, value = midi
-        print("blmidi", value)
         midiout.send_message(value)
 
 def rtmidicb(message, _):
     midi, delta = message
-    print("rtmidi", midi)
     midiAdvertisement.writeMIDI(midi)
 
 def readWhitelist(path):
