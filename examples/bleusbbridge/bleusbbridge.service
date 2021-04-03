@@ -3,6 +3,8 @@ Description=BLE Midi Server
 After=bluetooth.service
 
 [Service]
+Restart=always
+RestartSec=5
 User=root
 WorkingDirectory=/root/bleusbbridge
 ExecStart=/bin/env python3 /root/bleusbbridge/bleusbbridge.py
