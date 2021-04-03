@@ -1,1 +1,7 @@
 * text=auto
+
+*.py text
+*.service text
+*.txt text
+*.sh text
+*.conf text
