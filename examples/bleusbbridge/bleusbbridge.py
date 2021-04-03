@@ -8,8 +8,8 @@ from argparse import ArgumentParser
 
 DEFAULT_WHITELIST = "whitelist.txt"
 midiAdvertisement = None
-midiin = None
-midiout = None
+midiin = rtmidi.MidiIn()
+midiout = rtmidi.MidiOut()
 connected = False
 
 def blmidicb(message):
@@ -48,8 +48,8 @@ def readWhitelist(path):
     return inputNames, outputNames
 
 def checkMidiPorts(inputPorts, outputPorts):
-    inPorts = rtmidi.MidiIn().get_ports()
-    outPorts = rtmidi.MidiOut().get_ports()
+    inPorts = midiin.get_ports()
+    outPorts = midiout.get_ports()
     inPort = None
     outPort = None
     for port in inputPorts:
@@ -125,11 +125,14 @@ if __name__ == "__main__":
                     break
             break
         else:
-            inName, outName = checkMidiPorts(inputNames, outputNames)
-            if inName and outName:
-                midiin = rtmidi.midiutil.open_midiinput(inName, interactive=False)
-                midiout = rtmidi.midiutil.open_midioutput(outName, interactive=False)
-                midiin.set_error_callback(midiError)
-                midiout.set_error_callback(midiError)
-                connected = True
-            time.sleep(1.0)
+            try:
+                inName, outName = checkMidiPorts(inputNames, outputNames)
+                if inName and outName:
+                    midiin = rtmidi.midiutil.open_midiinput(inName, interactive=False)
+                    midiout = rtmidi.midiutil.open_midioutput(outName, interactive=False)
+                    midiin.set_error_callback(midiError)
+                    midiout.set_error_callback(midiError)
+                    connected = True
+                time.sleep(1.0)
+            except:
+                break
