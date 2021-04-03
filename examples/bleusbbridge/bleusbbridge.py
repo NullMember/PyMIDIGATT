@@ -81,7 +81,6 @@ if __name__ == "__main__":
     deviceFound = False
     inputNames = []
     outputNames = []
-    whitelistPath = parser.whitelist
 
     if args.list:
         rtmidi.midiutil.list_input_ports()
@@ -98,16 +97,9 @@ if __name__ == "__main__":
             raise Exception("If you manually specify output name, input name is required")
     elif args.whitelist:
         if os.path.exists(args.whitelist):
-            whitelistPath = args.whitelist
-            inputNames, outputNames = readWhitelist(whitelistPath)
+            inputNames, outputNames = readWhitelist(args.whitelist)
         else:
             raise Exception("Specified whitelist file not found")
-    else:
-        if os.path.exists(DEFAULT_WHITELIST):
-            whitelistPath = DEFAULT_WHITELIST
-            inputNames, outputNames = readWhitelist(whitelistPath)
-        else:
-            raise Exception("Default whitelist file not found")
     if not inputNames:
         raise Exception("Input names are empty")
     if not outputNames:
