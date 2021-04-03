@@ -4,7 +4,8 @@ After=bluetooth.service
 
 [Service]
 User=root
-ExecStart=/root/bleusbbridge/bleusbbridge
+WorkingDirectory=/root/bleusbbridge
+ExecStart=/bin/env python3 bleusbbridge.py
 
 [Install]
 WantedBy=multi-user.target
