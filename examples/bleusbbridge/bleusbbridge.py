@@ -42,9 +42,9 @@ def readWhitelist(path):
                         pass
                 else:
                     if parse == 1:
-                        inputNames.append(line)
+                        inputNames.append(line.rstrip())
                     elif parse == 2:
-                        outputNames.append(line)
+                        outputNames.append(line.rstrip())
     return inputNames, outputNames
 
 def checkMidiPorts(inputPorts, outputPorts):
