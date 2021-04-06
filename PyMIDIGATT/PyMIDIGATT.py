@@ -14,9 +14,11 @@ import BLEMidiTranslator
 
 class PyMIDIGATT:
     AdvertiserPath = '/org/test/ble/midi/advertisement'
-    ServicePath = '/org/test/ble/midi/service'
+    MidiServicePath = '/org/test/ble/midi/midiservice'
+    DevInfoPath = '/org/test/ble/midi/devinfo'
 
-    def __init__(self, name: str, callback = None, useBuffer: bool = True, writePeriod: float = 0.01):
+    def __init__(self, name: str, manufacturer_name: str = "Manufacturer", model_name: str = "Model", 
+                       callback = None, useBuffer: bool = True, writePeriod: float = 0.01):
         self.running = False
         self.mainloop = GLib.MainLoop()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -33,10 +35,19 @@ class PyMIDIGATT:
         self.le_advertising_manager = self.findLeAdvertisingManager()
         # initialize midi application
         self.application = Application(self.bus)
-        self.service = MidiService(self.ServicePath, self.bus, 0)
-        self.application.add_service(self.service)
-        self.characteristic = MidiCharacteristic(self.bus, 0, self.service)
-        self.service.add_characteristic(self.characteristic)
+        # initialize device info service
+        self.info_service = DeviceInformationService(self.DevInfoPath, self.bus, 0)
+        self.manufacturer_characteristic = ManufacturerCharacteristic(self.bus, 0, self.info_service, manufacturer_name)
+        self.model_characteristic = ModelCharacteristic(self.bus, 1, self.info_service, model_name)
+        self.info_service.add_characteristic(self.manufacturer_characteristic)
+        self.info_service.add_characteristic(self.model_characteristic)
+        # initialize midi service
+        self.midi_service = MidiService(self.MidiServicePath, self.bus, 1)
+        self.midi_characteristic = MidiCharacteristic(self.bus, 0, self.midi_service)
+        self.midi_service.add_characteristic(self.midi_characteristic)
+        # add services to application
+        self.application.add_service(self.info_service)
+        self.application.add_service(self.midi_service)
         # initialize advertiser
         self.advertisement = MidiAdvertisement(name, self.AdvertiserPath, self.bus, 0)
         # create midi related variables
@@ -59,7 +70,7 @@ class PyMIDIGATT:
                 self.midiThread.start()
             print("Advertisement started")
             # add our midi decoder to characteristic
-            self.characteristic.addCallback(self.midiCallback)
+            self.midi_characteristic.addCallback(self.midiCallback)
     
     def stop(self):
         if self.running:
@@ -69,7 +80,7 @@ class PyMIDIGATT:
             self.unregister()
             print("Advertisement ended")
             self.mainloop.quit()
-            self.characteristic.addCallback(None)
+            self.midi_characteristic.addCallback(None)
     
     def addCallback(self, callback):
         self.callback = callback
@@ -86,7 +97,7 @@ class PyMIDIGATT:
         if self.useBuffer:
             self.midiEncoder.writeToBuffer(value)
         else:
-            self.characteristic.writeMIDI(self.midiEncoder.encode(value))
+            self.midi_characteristic.writeMIDI(self.midiEncoder.encode(value))
 
     def register(self):
         self.gatt_manager.RegisterApplication(self.application, {}, reply_handler = self.gattManagerReplyHandler, error_handler = self.gattManagerErrorHandler)
@@ -135,5 +146,5 @@ class PyMIDIGATT:
     def midiRunner(self):
         while self.midiRunning:
             if self.midiEncoder.buffer.readable:
-                self.characteristic.writeMIDI(self.midiEncoder.encodeBuffer())
+                self.midi_characteristic.writeMIDI(self.midiEncoder.encodeBuffer())
             time.sleep(self.writePeriod)

@@ -8,4 +8,4 @@ class MidiAdvertisement(Advertisement):
         # self.add_min_interval(5)
         # self.add_max_interval(15)
         # self.discoverable = True
-        # self.include_tx_power = True
+        self.include_tx_power = True
