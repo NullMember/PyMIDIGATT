@@ -14,7 +14,7 @@ import BLEMidiTranslator
 
 class PyMIDIGATT:
     AdvertiserPath = '/org/test/ble/midi/advertisement'
-    MidiServicePath = '/org/test/ble/midi/midiservice'
+    MidiServicePath = '/org/test/ble/midi/service'
     DevInfoPath = '/org/test/ble/midi/devinfo'
 
     def __init__(self, name: str, manufacturer_name: str = "Manufacturer", model_name: str = "Model", 
@@ -36,13 +36,9 @@ class PyMIDIGATT:
         # initialize midi application
         self.application = Application(self.bus)
         # initialize device info service
-        self.info_service = DeviceInformationService(self.DevInfoPath, self.bus, 0)
-        self.manufacturer_characteristic = ManufacturerCharacteristic(self.bus, 0, self.info_service, manufacturer_name)
-        self.model_characteristic = ModelCharacteristic(self.bus, 1, self.info_service, model_name)
-        self.info_service.add_characteristic(self.manufacturer_characteristic)
-        self.info_service.add_characteristic(self.model_characteristic)
+        self.info_service = DeviceInformationService(self.DevInfoPath, self.bus, 0, manufacturer_name, model_name)
         # initialize midi service
-        self.midi_service = MidiService(self.MidiServicePath, self.bus, 1)
+        self.midi_service = MidiService(self.MidiServicePath, self.bus, 0)
         self.midi_characteristic = MidiCharacteristic(self.bus, 0, self.midi_service)
         self.midi_service.add_characteristic(self.midi_characteristic)
         # add services to application

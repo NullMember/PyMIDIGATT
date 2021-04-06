@@ -42,8 +42,10 @@ class MidiCharacteristic(Characteristic):
 
 class DeviceInformationService(Service):
     INFO_UUID = '0000180A-0000-1000-8000-00805F9B34FB'
-    def __init__(self, path, bus, index):
+    def __init__(self, path, bus, index, manufacturer_name, model_name):
         super().__init__(path, bus, index, self.INFO_UUID, True)
+        self.add_characteristic(ManufacturerCharacteristic(bus, 0, self, manufacturer_name))
+        self.add_characteristic(ModelCharacteristic(bus, 1, self, model_name))
 
 class ManufacturerCharacteristic(Characteristic):
     MANUF_UUID = '00002A29-0000-1000-8000-00805F9B34FB'
@@ -52,7 +54,10 @@ class ManufacturerCharacteristic(Characteristic):
         self.name = manufacturer_name
 
     def ReadValue(self, options):
-        return dbus.ByteArray(self.name)
+        name = []
+        for ch in self.name:
+            name.append(dbus.Byte(ch))
+        return name
 
 class ModelCharacteristic(Characteristic):
     MODEL_UUID = '00002A24-0000-1000-8000-00805F9B34FB'
@@ -61,4 +66,7 @@ class ModelCharacteristic(Characteristic):
         self.name = model_name
 
     def ReadValue(self, options):
-        return dbus.ByteArray(self.name)
+        name = []
+        for ch in self.name:
+            name.append(dbus.Byte(ch))
+        return name
