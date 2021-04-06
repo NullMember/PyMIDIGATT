@@ -51,22 +51,16 @@ class ManufacturerCharacteristic(Characteristic):
     MANUF_UUID = '00002A29-0000-1000-8000-00805F9B34FB'
     def __init__(self, bus, index, service, manufacturer_name):
         super().__init__(bus, index, self.MANUF_UUID, ['read'], service)
-        self.name = manufacturer_name
+        self.name = dbus.ByteArray(manufacturer_name)
 
     def ReadValue(self, options):
-        name = []
-        for ch in self.name:
-            name.append(dbus.Byte(ch))
-        return name
+        return self.name
 
 class ModelCharacteristic(Characteristic):
     MODEL_UUID = '00002A24-0000-1000-8000-00805F9B34FB'
     def __init__(self, bus, index, service, model_name):
         super().__init__(bus, index, self.MODEL_UUID, ['read'], service)
-        self.name = model_name
+        self.name = dbus.ByteArray(model_name)
 
     def ReadValue(self, options):
-        name = []
-        for ch in self.name:
-            name.append(dbus.Byte(ch))
-        return name
+        return self.name
