@@ -1,5 +1,30 @@
 from PyMIDIGATT.bluez.GATT import *
 
+class DeviceInformationService(Service):
+    INFO_UUID = '0000180A-0000-1000-8000-00805F9B34FB'
+    def __init__(self, bus, index, manufacturer_name, model_name):
+        super().__init__(bus, index, self.INFO_UUID, True)
+        self.add_characteristic(ManufacturerCharacteristic(bus, 0, self, manufacturer_name))
+        self.add_characteristic(ModelCharacteristic(bus, 1, self, model_name))
+
+class ManufacturerCharacteristic(Characteristic):
+    MANUF_UUID = '00002A29-0000-1000-8000-00805F9B34FB'
+    def __init__(self, bus, index, service, manufacturer_name):
+        super().__init__(bus, index, self.MANUF_UUID, ['read'], service)
+        self.name = dbus.ByteArray(bytes(manufacturer_name, encoding = 'utf-8'))
+
+    def ReadValue(self, options):
+        return self.name
+
+class ModelCharacteristic(Characteristic):
+    MODEL_UUID = '00002A24-0000-1000-8000-00805F9B34FB'
+    def __init__(self, bus, index, service, model_name):
+        super().__init__(bus, index, self.MODEL_UUID, ['read'], service)
+        self.name = dbus.ByteArray(bytes(model_name, encoding = 'utf-8'))
+
+    def ReadValue(self, options):
+        return self.name
+
 class MidiService(Service):
     MIDI_UUID = "03B80E5A-EDE8-4B33-A751-6CE34EC4C700"
 
@@ -39,28 +64,3 @@ class MidiCharacteristic(Characteristic):
         else:
             self.callback(list(bytes(value)))
             return
-
-class DeviceInformationService(Service):
-    INFO_UUID = '0000180A-0000-1000-8000-00805F9B34FB'
-    def __init__(self, bus, index, manufacturer_name, model_name):
-        super().__init__(bus, index, self.INFO_UUID, True)
-        self.add_characteristic(ManufacturerCharacteristic(bus, 0, self, manufacturer_name))
-        self.add_characteristic(ModelCharacteristic(bus, 1, self, model_name))
-
-class ManufacturerCharacteristic(Characteristic):
-    MANUF_UUID = '00002A29-0000-1000-8000-00805F9B34FB'
-    def __init__(self, bus, index, service, manufacturer_name):
-        super().__init__(bus, index, self.MANUF_UUID, ['read'], service)
-        self.name = dbus.ByteArray(bytes(manufacturer_name, encoding = 'utf-8'))
-
-    def ReadValue(self, options):
-        return self.name
-
-class ModelCharacteristic(Characteristic):
-    MODEL_UUID = '00002A24-0000-1000-8000-00805F9B34FB'
-    def __init__(self, bus, index, service, model_name):
-        super().__init__(bus, index, self.MODEL_UUID, ['read'], service)
-        self.name = dbus.ByteArray(bytes(model_name, encoding = 'utf-8'))
-
-    def ReadValue(self, options):
-        return self.name
