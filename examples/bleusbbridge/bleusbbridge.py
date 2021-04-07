@@ -105,7 +105,7 @@ if __name__ == "__main__":
     if not outputNames:
         raise Exception("Output names are empty")
 
-    midiAdvertisement = PyMIDIGATT(args.name, blmidicb)
+    midiAdvertisement = PyMIDIGATT(args.name, callback = blmidicb)
 
     while True:
         if connected:
