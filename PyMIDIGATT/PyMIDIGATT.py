@@ -36,10 +36,12 @@ class PyMIDIGATT:
         # initialize midi application
         self.application = Application(self.bus)
         # initialize device info service
-        self.info_service = DeviceInformationService(self.bus, 0, manufacturer_name, model_name)
+        self.info_service = DeviceInformationService(self.bus, 0)
+        self.info_service.add_characteristic(ManufacturerCharacteristic(self.bus, 0, self.info_service, manufacturer_name))
+        self.info_service.add_characteristic(ModelCharacteristic(self.bus, 1, self.info_service, model_name))
         # initialize midi service
         self.midi_service = MidiService(self.bus, 1)
-        self.midi_characteristic = MidiCharacteristic(self.bus, 0, self.midi_service)
+        self.midi_characteristic = MidiCharacteristic(self.bus, 2, self.midi_service)
         self.midi_service.add_characteristic(self.midi_characteristic)
         # add services to application
         self.application.add_service(self.info_service)

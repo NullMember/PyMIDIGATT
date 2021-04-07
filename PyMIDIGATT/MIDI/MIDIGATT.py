@@ -2,10 +2,8 @@ from PyMIDIGATT.bluez.GATT import *
 
 class DeviceInformationService(Service):
     INFO_UUID = '0000180A-0000-1000-8000-00805F9B34FB'
-    def __init__(self, bus, index, manufacturer_name, model_name):
+    def __init__(self, bus, index):
         super().__init__(bus, index, self.INFO_UUID, True)
-        self.add_characteristic(ManufacturerCharacteristic(bus, 0, self, manufacturer_name))
-        self.add_characteristic(ModelCharacteristic(bus, 1, self, model_name))
 
 class ManufacturerCharacteristic(Characteristic):
     MANUF_UUID = '00002A29-0000-1000-8000-00805F9B34FB'
