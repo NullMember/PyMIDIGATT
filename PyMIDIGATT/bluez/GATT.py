@@ -33,15 +33,13 @@ class Application(dbus.service.Object):
 
         return response
 
-
 class Service(dbus.service.Object):
     """
     org.bluez.GattService1 interface implementation
     """
-    PATH_BASE = '/org/bluez/example/service'
 
-    def __init__(self, bus, index, uuid, primary):
-        self.path = self.PATH_BASE + str(index)
+    def __init__(self, path, bus, index, uuid, primary):
+        self.path = path + str(index)
         self.bus = bus
         self.uuid = uuid
         self.primary = primary

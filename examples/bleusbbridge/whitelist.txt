@@ -8,6 +8,8 @@
 #To use different whitelist file check bleusbbridge script
 #with --help option
 ;Input
-MK3 MIDI 2
+MIDIInputName
+MIDIInputName2
 ;Output
-MK3 MIDI 2
+MIDIOutputName
+MIDIOutputName2

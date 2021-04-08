@@ -3,8 +3,8 @@ from PyMIDIGATT.bluez.GATT import *
 class MidiService(Service):
     MIDI_UUID = "03B80E5A-EDE8-4B33-A751-6CE34EC4C700"
 
-    def __init__(self, bus, index):
-        super().__init__(bus, index, self.MIDI_UUID, True)
+    def __init__(self, path, bus, index):
+        super().__init__(path, bus, index, self.MIDI_UUID, True)
 
 class MidiCharacteristic(Characteristic):
     MIDI_CHRC_UUID = "7772E5DB-3868-4112-A1A9-F2669D106BF3"
