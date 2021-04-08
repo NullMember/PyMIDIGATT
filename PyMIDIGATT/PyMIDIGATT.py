@@ -28,7 +28,7 @@ class PyMIDIGATT:
         self.adapter_properties = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter_path), "org.freedesktop.DBus.Properties")
         self.adapter_properties.Set(ADAPTER_IFACE, "Powered", dbus.Boolean(1))
         self.adapter_properties.Set(ADAPTER_IFACE, "Discoverable", dbus.Boolean(1))
-        #self.adapter_properties.Set(ADAPTER_IFACE, "Alias", dbus.String(name))
+        self.adapter_properties.Set(ADAPTER_IFACE, "Alias", dbus.String(name))
         # get managers
         self.gatt_manager = self.findGattManager()
         self.le_advertising_manager = self.findLeAdvertisingManager()
