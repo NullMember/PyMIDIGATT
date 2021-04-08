@@ -24,7 +24,7 @@ def cb(message):
         print("Pitch Bend, Channel: {}, Value: {}".format(chn, (midi[1] << 7) | midi[2]))
 
 if __name__ == "__main__":
-    midiAdvertisement = PyMIDIGATT("Midi Test", cb)
+    midiAdvertisement = PyMIDIGATT("Midi Test", callback = cb)
     midiAdvertisement.run()
     while True:
         try:
