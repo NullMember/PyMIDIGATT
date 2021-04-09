@@ -94,7 +94,7 @@ I might be trying to delete your system32 folder.
 
 ## Notes
 
-- This software not tested on iOS and MacOS at this time. I don't know if they will ever connect or work with your shiny ble-midi device.
+- This software not tested on iOS and MacOS at this time. I don't know if they will ever connect or work with your shiny ble-midi device. Update: Not working on iOS and MacOS devices.
 - To connect with your Android device, I suggest using [this](https://play.google.com/store/apps/details?id=com.mobileer.example.midibtlepairing) app. It will list your ble-midi device as standart midi device to other apps, so you can use any app supports midi functionality. But it's performance is not best.
 - To test your ble-midi device on Windows you can use [this](https://webmidilab.appspot.com/blesynth/) tool. I don't understand how a software running on top of an OS can do this but not OS itself. Shame to Microsoft.
 - That's it. Have fun!
