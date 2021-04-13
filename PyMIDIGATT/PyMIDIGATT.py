@@ -6,10 +6,9 @@ from gi.repository import GLib
 import threading
 import time
 
-from .MIDI.MIDIAdvertisement import *
-from .MIDI.MIDIGATT import *
-from .bluez.bluezutils import *
-from .bluez.consts import *
+from PyMIDIGATT.MIDIGATT import *
+from PyMIDIGATT.classes import *
+from PyMIDIGATT.consts import *
 import BLEMidiTranslator
 
 class PyMIDIGATT:
