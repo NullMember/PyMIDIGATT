@@ -4,8 +4,8 @@ import time
 
 timestamps = {}
 log = []
-intervals = [5, 6, 7, 8, 9, 10, 12, 15, 18, 20, 25, 30, 40, 50]
-lengths = [100]
+intervals = [6*1.25, 7*1.25, 8*1.25, 9*1.25, 10*1.25, 11*1.25, 12*1.25, 13*1.25, 14*1.25, 15*1.25]
+lengths = [1000]
 startTest = False
 interactive = True
 
@@ -34,7 +34,7 @@ midiAdvertisement.run()
 if __name__ == "__main__":
     time.sleep(1)
     print("\nPress CTRL+C to exit")
-    f = open("/boot/log.txt", "w")
+    f = open("log.txt", "w")
     if interactive:
         while True:
             try:
@@ -49,8 +49,8 @@ if __name__ == "__main__":
                         writeMIDI([0x80, 0, 0])
                         time.sleep(varint / 1000)
                     time.sleep(1)
-                    for i, l in enumerate(log):
-                        f.write("{:3d}, {}\n".format(i, l))
+                    for l in log:
+                        f.write("{}\n".format(l))
                 except:
                     print("Something wrong, please try again")
             except:
