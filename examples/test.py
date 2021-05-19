@@ -1,34 +1,76 @@
 #!/usr/bin/env python3
 from PyMIDIGATT import PyMIDIGATT
 import time
-import rtmidi
 
-def cb(message):
-    timestamp, midi = message
-    cmd = midi[0] & 0xF0
-    chn = midi[0] & 0x0F
-    print("Timestamp: ", timestamp)
-    if cmd == 0x80:
-        print("Note Off, Channel: {}, Note: {}, Velocity: {}".format(chn, midi[1], midi[2]))
-    elif cmd == 0x90:
-        print("Note On, Channel: {}, Note: {}, Velocity: {}".format(chn, midi[1], midi[2]))
-    elif cmd == 0xA0:
-        print("Poly Pressure, Channel: {}, Note: {}, Pressure: {}".format(chn, midi[1], midi[2]))
-    elif cmd == 0xB0:
-        print("Control Change, Channel: {}, Control: {}, Value: {}".format(chn, midi[1], midi[2]))
-    elif cmd == 0xC0:
-        print("Program Change, Channel: {}, Program: {}".format(chn, midi[1]))
-    elif cmd == 0xD0:
-        print("Aftertouch, Channel: {}, Pressure: {}".format(chn, midi[1]))
-    elif cmd == 0xE0:
-        print("Pitch Bend, Channel: {}, Value: {}".format(chn, (midi[1] << 7) | midi[2]))
+timestamps = {}
+log = []
+intervals = [5, 6, 7, 8, 9, 10, 12, 15, 18, 20, 25, 30, 40, 50]
+lengths = [100]
+startTest = False
+interactive = True
+
+def writeMIDI(message):
+    global timestamps
+    midi = midiAdvertisement.midiEncoder.encode(message)
+    timestamp = ((midi[0] & 0x7F) << 7)  | (midi[1] & 0x7F)
+    midiAdvertisement.characteristic.writeMIDI(midi)
+    timestamps[timestamp] = time.time()
+
+def cb(messages):
+    global timestamps
+    receiveTime = time.time()
+    for message in messages:
+        timestamp, midi = message
+        if midi[0] == 0x80:
+            sendTime = timestamps.pop(timestamp)
+            log.append(receiveTime - sendTime)
+        elif midi[0] == 0x90:
+            startTest = True
+            print("Start Test signal received")
+
+midiAdvertisement = PyMIDIGATT("Midi Test", cb)
+midiAdvertisement.run()
 
 if __name__ == "__main__":
-    midiAdvertisement = PyMIDIGATT("Midi Test", cb)
-    midiAdvertisement.run()
-    while True:
-        try:
+    time.sleep(1)
+    print("\nPress CTRL+C to exit")
+    f = open("/boot/log.txt", "w")
+    if interactive:
+        while True:
+            try:
+                interval = input("Enter desired interval between messages in ms: ")
+                length = input("Enter message length: ")
+                try:
+                    log = []
+                    varint = float(interval)
+                    varlen = int(length)
+                    f.write("Interval: {:4.2f} ms, Length: {:4d} messages\n".format(varint, varlen))
+                    for i in range(varlen):
+                        writeMIDI([0x80, 0, 0])
+                        time.sleep(varint / 1000)
+                    time.sleep(1)
+                    for i, l in enumerate(log):
+                        f.write("{:3d}, {}\n".format(i, l))
+                except:
+                    print("Something wrong, please try again")
+            except:
+                midiAdvertisement.stop()
+                f.close()
+                break
+    else:
+        while True:
+            if startTest:
+                for length in lengths:
+                    for interval in intervals:
+                        log = []
+                        f.write("Interval: {:4.2f} ms, Length: {:4d} messages\n".format(interval, length))
+                        for i in range(length):
+                            writeMIDI([0x80, 0, 0])
+                            time.sleep(interval / 1000)
+                        time.sleep(1)
+                        for i, l in enumerate(log):
+                            f.write("{:3d}, {}\n".format(i, l))
+                midiAdvertisement.stop()
+                f.close()
+                break
             time.sleep(0.1)
-        except:
-            midiAdvertisement.stop()
-            break

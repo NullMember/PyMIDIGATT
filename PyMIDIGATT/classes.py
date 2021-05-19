@@ -91,10 +91,10 @@ class Advertisement(dbus.service.Object):
         self.data[ad_type] = dbus.Array(data, signature='y')
     
     def add_min_interval(self, interval):
-        self.min_interval = 0 if interval < 0 else (10484 if interval > 10484 else interval)
+        self.min_interval = 20 if interval < 20 else (10484 if interval > 10484 else interval)
     
     def add_max_interval(self, interval):
-        self.max_interval = 0 if interval < 0 else (10484 if interval > 10484 else interval)
+        self.max_interval = 20 if interval < 20 else (10484 if interval > 10484 else interval)
     
     def add_tx_power(self, power):
         self.tx_power = -127 if power < -127 else (20 if power > 20 else power)

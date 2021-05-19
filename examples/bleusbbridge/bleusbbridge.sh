@@ -16,8 +16,6 @@ sudo pip3 install --no-index BLEMidiTranslator/.
 sudo rm -r BLEMidiTranslator
 # clone PyMIDIGATT package
 git clone https://github.com/NullMember/PyMIDIGATT.git
-# copy bluetooth configuration file required for PyMIDIGATT to work
-sudo cp PyMIDIGATT/configuration/main.conf /etc/bluetooth/main.conf
 # copy bleusbbridge service to make it run on restart
 sudo cp PyMIDIGATT/examples/bleusbbridge/bleusbbridge.service /etc/systemd/system/bleusbbridge.service
 # copy bleusbbridge directory to root home
