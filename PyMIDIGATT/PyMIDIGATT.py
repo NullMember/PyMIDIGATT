@@ -15,7 +15,7 @@ class PyMIDIGATT:
     AdvertiserPath = '/org/test/ble/midi/advertisement'
     ServicePath = '/org/test/ble/midi/service'
 
-    def __init__(self, name: str, callback = None, min_interval = 6, max_interval = 6, useBuffer: bool = False, writePeriod: int = 0.01):
+    def __init__(self, name: str, callback = None, min_interval: int = 6, max_interval: int = 6, latency: int = 4, useBuffer: bool = False, writePeriod: float = 0.01):
         self.running = False
         self.mainloop = GLib.MainLoop()
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -32,6 +32,8 @@ class PyMIDIGATT:
             f.write(str(min_interval))
         with open('/sys/kernel/debug/bluetooth/' + self.adapter_name + '/conn_max_interval', 'w') as f:
             f.write(str(max_interval))
+        with open('/sys/kernel/debug/bluetooth/' + self.adapter_name + '/conn_latency', 'w') as f:
+            f.write(str(latency))
         # power on adapter
         self.adapter_properties.Set(ADAPTER_IFACE, "Powered", dbus.Boolean(1))
         self.adapter_properties.Set(ADAPTER_IFACE, "Discoverable", dbus.Boolean(1))
