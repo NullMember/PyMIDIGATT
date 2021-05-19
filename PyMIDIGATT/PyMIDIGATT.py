@@ -24,12 +24,13 @@ class PyMIDIGATT:
         # get adapter and power it up
         self.adapter_path = find_adapter_path_from_iface(ADAPTER_IFACE)
         self.adapter_properties = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, self.adapter_path), "org.freedesktop.DBus.Properties")
+        self.adapter_name = self.adapter_path.split('/')[-1]
         # power off adapter to set connection intervals
         self.adapter_properties.Set(ADAPTER_IFACE, "Powered", dbus.Boolean(0))
         # there is no good way to set connection intervals
-        with open('/sys/kernel/debug/bluetooth/hci0/conn_min_interval', 'w') as f:
+        with open('/sys/kernel/debug/bluetooth/' + self.adapter_name + '/conn_min_interval', 'w') as f:
             f.write('6')
-        with open('/sys/kernel/debug/bluetooth/hci0/conn_max_interval', 'w') as f:
+        with open('/sys/kernel/debug/bluetooth/' + self.adapter_name + '/conn_max_interval', 'w') as f:
             f.write('6')
         # power on adapter
         self.adapter_properties.Set(ADAPTER_IFACE, "Powered", dbus.Boolean(1))
