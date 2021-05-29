@@ -11,11 +11,11 @@ setup(
     version=PyMIDIGATT.version,
     author='Malik Enes Safak',
     author_email='e.maliksafak@gmail.com',
-    packages=['PyMIDIGATT'],
+    packages=['BLEMidiTranslator', 'PyMIDIGATT'],
     url='https://github.com/NullMember/PyMIDIGATT',
     license='MIT',
     install_requires=[
-        "BLEMidiTranslator"
+        'dbus-python'
     ],
     description='MIDI BLE GATT server for linux computers including single board computers',
     keywords = 'midi ble gatt server linux bluez dbus sbe raspberry pi'
